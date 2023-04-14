@@ -129,8 +129,6 @@ def main():
     ser = serial.Serial('COM3', 115200)
     phase = 1
     maze = init_maze(12, 7)
-    visited = set()
-    visited.add(start)
 
     goal_area = get_goal_area(maze)
     start = get_start_position(maze, 'top_left')  # Reemplazar
@@ -138,6 +136,8 @@ def main():
     current_position = start
     heading = 'north' 
     IR_THRESHOLD = 500  # Ajustar según la detección de obstáculos de los sensores IR
+    visited = set()
+    visited.add(start) #// Checkcheckcheck
 
     while True:
         if ser.in_waiting > 0:
@@ -152,6 +152,7 @@ def main():
                     time.sleep(15)
                     # Cambia a la fase 2 (seguimiento de la ruta óptima)
                     phase = 2
+                    start = current_position
                     # Calcula la ruta óptima y envía un comando al robot para indicar el inicio de la fase 2
                     movements = flood_fill(maze, start, goal_area)
                     print("Movimientos calculados:", movements)
