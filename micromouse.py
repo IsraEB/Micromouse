@@ -91,11 +91,11 @@ def print_maze(maze):
                 print(".", end=" ")
         print()
 
-    
+
 def send_movements_to_robot(movements, ser):
     for movement in movements:
         ser.write(movement.encode())
-        time.sleep(0.5) 
+        time.sleep(0.5)
 
 def get_goal_area(maze):
     rows, cols = len(maze), len(maze[0])
@@ -112,7 +112,7 @@ def all_nodes_visited(maze, visited):
         for col in range(len(maze[0])):
             if maze[row][col] != -1 and (row, col) not in visited:
                 return False
-    return True 
+    return True
 
 def get_start_position(maze, corner):
     if corner == 'top_left':
@@ -126,7 +126,7 @@ def get_start_position(maze, corner):
 
 
 def main():
-    ser = serial.Serial('COM3', 115200)
+    ser = serial.Serial('COM3', 9600)
     phase = 1
     maze = init_maze(12, 7)
 
@@ -134,7 +134,7 @@ def main():
     start = get_start_position(maze, 'top_left')  # Reemplazar
 
     current_position = start
-    heading = 'north' 
+    heading = 'north'
     IR_THRESHOLD = 500  # Ajustar según la detección de obstáculos de los sensores IR
     visited = set()
     visited.add(start) #// Checkcheckcheck
