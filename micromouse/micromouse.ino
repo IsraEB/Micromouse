@@ -178,20 +178,39 @@ void sendSensors()
 // Odometry
 
 int N = 20;            // nùmero de ranuras del encoder
-float diametro = 6.8;  // diametro de la llanta cm
-float longitud = 13.4; // longitud del robot entre llantas
 int contadorTicks = 1; // número de ticks para cálculo de velocidad (recordar que entre menor sea el valor mayor ruido de la medida)
 int tam = 10;          // tamaño del vector del calculo de promedio (Este valor depende del tamaño de los vectores de promedio vectorL y vectorR)
 int k = 10;            // tiempo de muestreo
 
+volatile unsigned muestreoActual = 0; // variables para definiciòn del tiempo de muestreo
+volatile unsigned muestreoAnterior = 0;
+volatile unsigned deltaMuestreo = 0;
+
+float error = 0; // error variables
+float Kp = 40;   // Contante proporcional control
+int PWMr = 0;    // PWM de la llanta derecha (señal de control llanta derecha)
+int PWMl = 0;    // PWM de la llanta izquierda (señal de control llanta izquierda)
+
+int PWMmax = 60; // PWM màximo
+int PWMmin = 30; // PWM mìnimo
+
+///------------------------------- Variables Posición del robot---------------------------------------------
 float Cdistancia = 0; // distancia recorrido punto central
 float x = 0;          // distancia recorrida eje X
 float y = 0;          // distancia recorrida eje Y
 float phi = 0;        // posición angular
 
-volatile unsigned muestreoActual = 0; // variables para definiciòn del tiempo de muestreo
-volatile unsigned muestreoAnterior = 0;
-volatile unsigned deltaMuestreo = 0;
+///------------------------------- Variables Posición deseada ---------------------------------------------
+float Xd = 100;
+float Yd = 100;
+float Phid = atan2(Yd - y, Xd - x);
+
+///------------------------------- Variables del robot  ---------------------------------------------
+
+float diametro = 6.8;  // diametro de la llanta cm
+float longitud = 13.4; // longitud del robot entre llantas
+float V = 0;           // Velocidad lineal del carro
+float W = 0;           // Velocidad Angular del carro
 
 ///------------------------------- Variables de motor derecho---------------------------------------------
 
@@ -232,7 +251,6 @@ float Ldistancia = 0; // distancia recorrida llanta izquierda
 int Ltick = 0;        // ticks del encoder izquierdo
 int LtickAnt = 0;     // ticks del encoder izquier anteriores
 int deltaLtick = 0;   // diferencia del encoder izquierdo
-
 
 void REncoder()
 {            // función de interrupción del enconder llanta derecha
@@ -297,6 +315,8 @@ void loop()
     deltaMuestreo = (double)muestreoActual - muestreoAnterior; // delta de muestreo
     if (deltaMuestreo >= k)                                    // se asegura el tiempo de muestreo
     {
+        float Phid = atan2(Yd - y, Xd - x); // Recalcular el ángulo deseado en cada iteración, dado que el cambia con respecto  a cada movimiento
+
         deltaMuestreoInterrupcionR = muestreoActualInterrupcionR - muestreoAnteriorInterrupcionR; // diferencia tiempos de interruciones de ticks del motor
         deltaMuestreoInterrupcionL = muestreoActualInterrupcionL - muestreoAnteriorInterrupcionL; // diferencia tiempos de interruciones de ticks del motor
 
@@ -314,16 +334,55 @@ void loop()
         Wl = contadorTicks * ((2 * PI) / N) * frecuenciaL; // frecuencia angular Rad/s
         Vl = Wl * (diametro / 2);                          // velocidad lineal cm/s
 
-        //** Cambiar los valores hace que se muevan las llantas
+        //        V = (Vr+Vl)/2;                                                                                    // calculo de la velocidad del robot
+        V = 50;                                // velocidad constante para alcanzar el àngulo
+        error = Phid - phi;                    // error angular Angulo deseado menos el angulo del robot
+        W = (Vr - Vl) / longitud + Kp * error; // Càlculo de la velocidad angular con las variables de control
+        PWMr = V + (W * longitud) / 2;         // Señal de control PWM llanta derecha
+        PWMl = V - (W * longitud) / 2;         // Señal de control PWM llanta izquierda
 
-        analogWrite(llantaR, 0); // PWM de la llanta derecha
-        analogWrite(llantaL, 0); // PWM de la llanta izquierda
+        //-------------------------------------- condicionales para limites de la señal de PWM ---------------------------------------------------------------------------------------------------//
+
+        if (PWMr > PWMmax)
+        {
+            PWMr = PWMmax;
+        }
+        if (PWMr < PWMmin)
+        {
+            PWMr = PWMmin;
+        }
+        if (PWMl > PWMmax)
+        {
+            PWMl = PWMmax;
+        }
+        if (PWMl < PWMmin)
+        {
+            PWMl = PWMmin;
+        }
+
+        if (abs(x - Xd) < 5 && abs(y - Yd) < 5)
+        {
+            analogWrite(llantaR, 0);
+            analogWrite(llantaL, 0);
+        }
+        else
+        {
+            analogWrite(llantaR, PWMr);
+            analogWrite(llantaL, PWMl);
+        }
+
+        //        analogWrite(llantaR,PWMr);                                                                           // PWM de la llanta derecha
+        //        analogWrite(llantaL,PWMl);                                                                           // PWM de la llanta izquierda
+
+        //        analogWrite(llantaR,0);                                                                           // PWM de la llanta derecha
+        //        analogWrite(llantaL,0);                                                                           // PWM de la llanta izquierda
 
         odometria(); // cálculo de la odometría
 
-        Serial.print(x);                   // se muestra el tiempo entre TIC y TIC
-        Serial.print(" ");                 // se muestra el tiempo entre TIC y TIC
-        Serial.println(y);                 // se muestra el tiempo entre TIC y TIC
+        Serial.print(x);   // se muestra el tiempo entre TIC y TIC
+        Serial.print(","); // se muestra el tiempo entre TIC y TIC
+        Serial.println(y); // se muestra el tiempo entre TIC y TIC
+
         muestreoAnterior = muestreoActual; // actualización del muestreo anterior
     }
 }
