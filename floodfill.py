@@ -21,6 +21,9 @@ def floodfill(maze, start, end):
                 path.append(parent[path[-1]])
             path.reverse()
             shortestPath = path
+
+            # return shortestPath, maze
+
         visited.add(current)
 
         print("Current: ", current)
@@ -31,6 +34,9 @@ def floodfill(maze, start, end):
                      (current[0]+1, current[1]),  # South
                      (current[0], current[1]-1),  # West
                      (current[0], current[1]+1)]  # East
+
+        reachable_neighbors_count = 0
+
         for neighbor in neighbors:
             if neighbor[0] < 0 or neighbor[0] >= len(maze) or \
                neighbor[1] < 0 or neighbor[1] >= len(maze[0]) or \
@@ -41,6 +47,10 @@ def floodfill(maze, start, end):
             distance[neighbor] = distance[current] + 1
 
             maze[neighbor[0]][neighbor[1]] = distance[neighbor]
+
+            reachable_neighbors_count = reachable_neighbors_count + 1
+
+        current_is_bifurcation = reachable_neighbors_count > 1
 
         print_maze()
 
@@ -56,9 +66,9 @@ def floodfill(maze, start, end):
 
 
 # Example maze
-maze = [[0, 0, 0, 0, 0],
-        [0, -1, 0, -1, 0],
-        [0, -1, 0, -1, 0],
+maze = [[0, -1, 0, 0, 0],
+        [0, -1, 0, 0, 0],
+        [0, -1, 0, 0, 0],
         [0, 0, 0, -1, 0],
         [-1, -1, 0, -1, 0]]
 
