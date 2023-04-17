@@ -1,3 +1,9 @@
+def print_maze():
+    # Print filled maze
+    for row in maze:
+        print(row)
+    print()
+
 def floodfill(maze, start):
     queue = [start]
     visited = set()
@@ -7,7 +13,8 @@ def floodfill(maze, start):
         current = queue.pop(0)
         visited.add(current)
 
-        print(current)
+        print("Current: ", current)
+        print()
 
         # Check neighbors
         neighbors = [(current[0]-1, current[1]),  # North
@@ -21,6 +28,10 @@ def floodfill(maze, start):
                 continue
             queue.insert(0,neighbor)
             distance[neighbor] = distance[current] + 1
+
+            maze[neighbor[0]][neighbor[1]] = distance[neighbor]
+
+        print_maze()
 
     # Fill maze with distance values
     for i in range(len(maze)):
@@ -44,6 +55,3 @@ start = (0, 0)
 
 maze = floodfill(maze, start)
 
-# Print filled maze
-for row in maze:
-    print(row)
