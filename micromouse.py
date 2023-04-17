@@ -212,7 +212,7 @@ def step(ser,phase,maze,goal_area,start,current_position,heading,IR_THRESHOLD,vi
 
         if phase == 2:
             # En la fase 2, envía los movimientos calculados al robot
-            send_movements_to_robot(movements, ser)
+            # send_movements_to_robot(movements, ser)
             return False,ser,phase,maze,goal_area,start,current_position,heading,IR_THRESHOLD,visited, currentN
     # Mostrar la matriz del laberinto en tiempo real
     print_maze(maze)

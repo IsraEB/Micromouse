@@ -360,7 +360,7 @@ void loop()
             PWMl = PWMmin;
         }
 
-        if (abs(x - Xd) < 5 && abs(y - Yd) < 5)
+        if (abs(x - Xd) < 5 && abs(y - Yd) < 5 && abs(phi - Phid) < 5)
         {
             analogWrite(llantaR, 0);
             analogWrite(llantaL, 0);
