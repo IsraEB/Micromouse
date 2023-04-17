@@ -4,13 +4,23 @@ def print_maze():
         print(row)
     print()
 
-def floodfill(maze, start):
+def floodfill(maze, start, end):
     queue = [start]
     visited = set()
-    distance = {start: 0}
+    parent = {}  # Map of child: parent Shortest
+    distance = {start: 0} # Maze
+
+    shortestPath = None
 
     while queue:
         current = queue.pop(0)
+        if current == end:
+            # Build path
+            path = [end]
+            while path[-1] != start:
+                path.append(parent[path[-1]])
+            path.reverse()
+            shortestPath = path
         visited.add(current)
 
         print("Current: ", current)
@@ -27,6 +37,7 @@ def floodfill(maze, start):
                neighbor in visited or maze[neighbor[0]][neighbor[1]] == -1:
                 continue
             queue.insert(0,neighbor)
+            parent[neighbor] = current
             distance[neighbor] = distance[current] + 1
 
             maze[neighbor[0]][neighbor[1]] = distance[neighbor]
@@ -41,7 +52,7 @@ def floodfill(maze, start):
             else:
                 maze[i][j] = -1
 
-    return maze
+    return shortestPath, maze
 
 
 # Example maze
@@ -52,6 +63,11 @@ maze = [[0, 0, 0, 0, 0],
         [-1, -1, 0, -1, 0]]
 
 start = (0, 0)
+end = (len(maze)-1, len(maze[0])-1)
 
-maze = floodfill(maze, start)
+path, maze = floodfill(maze, start, end)
 
+if path:
+    print("Shortest path found:", path)
+else:
+    print("No path found.")
