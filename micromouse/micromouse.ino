@@ -82,35 +82,6 @@ void setup()
 //   valorRanurado2 = digitalRead(pinSensorRanurado2);
 // }
 
-void enviarDatos() {
-  // Envía el valor del sensor IR izquierdo
-  SerialBT.print("IRL,");
-  SerialBT.print(valorIRIzquierdo);
-  SerialBT.print(",");
-  // Envía el valor del sensor IR derecho
-  SerialBT.print("IRD,");
-  SerialBT.print(valorIRDerecho);
-  SerialBT.print(",");
-  // Envía el valor del sensor IR frontal
-  SerialBT.print("IRF,");
-  SerialBT.print(valorIRFrontal);
-    SerialBT.print(",");
-  
-  SerialBT.print("phi,");
-  SerialBT.print(phi);
-
-//   SerialBT.print(",");
-  // Envía el valor del primer sensor ranurado
-//   SerialBT.print("SR1,");
-//   SerialBT.print(valorRanurado1);
-//   SerialBT.print(",");
-  // Envía el valor del segundo sensor ranurado
-//   SerialBT.print("SR2,");
-//   SerialBT.print(valorRanurado2);
-  // Indica el final de la línea de datos
-  SerialBT.println();
-}
-
 // void recibirComandos() {
 //   if (SerialBT.available()) {
 //     char comando = SerialBT.read();
@@ -247,6 +218,35 @@ float phi = 0;        // posición angular inicial
 
 float diametro = 6.5;  // diametro de la llanta cm
 float longitud = 9.7; // longitud del robot entre llantas
+
+void enviarDatos() {
+  // Envía el valor del sensor IR izquierdo
+  SerialBT.print("IRL,");
+  SerialBT.print(valorIRIzquierdo);
+  SerialBT.print(",");
+  // Envía el valor del sensor IR derecho
+  SerialBT.print("IRD,");
+  SerialBT.print(valorIRDerecho);
+  SerialBT.print(",");
+  // Envía el valor del sensor IR frontal
+  SerialBT.print("IRF,");
+  SerialBT.print(valorIRFrontal);
+    SerialBT.print(",");
+  
+  SerialBT.print("phi,");
+  SerialBT.print(phi);
+
+//   SerialBT.print(",");
+  // Envía el valor del primer sensor ranurado
+//   SerialBT.print("SR1,");
+//   SerialBT.print(valorRanurado1);
+//   SerialBT.print(",");
+  // Envía el valor del segundo sensor ranurado
+//   SerialBT.print("SR2,");
+//   SerialBT.print(valorRanurado2);
+  // Indica el final de la línea de datos
+  SerialBT.println();
+}
 
 void REncoder()
 {            // función de interrupción del enconder llanta derecha
