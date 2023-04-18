@@ -97,6 +97,34 @@ def floodfill(maze, start, end):
 
     return maze, None
 
+def followPath(path):
+    last_visited = None
+    
+    while path:
+        current = path.pop(0)
+        
+        print("Current: ", current)
+        
+        print(last_visited, current)
+        
+        if(last_visited != current and last_visited != None):
+            
+            arduinoMovesTo = (
+                last_visited[0]-current[0],
+                current[1]-last_visited[1]
+            )
+            
+            print("Para llegar a esta posición, el arduino se tiene que mover a (",arduinoMovesTo[0],",",arduinoMovesTo[1], ")")
+            
+            arduino.write((str(arduinoMovesTo[0])+"\n").encode())
+            arduino.write((str(arduinoMovesTo[1])+"\n").encode())
+            while True:
+                if arduino.in_waiting > 0:
+                    line = arduino.readline().decode().strip()
+                    print(line)
+                    break
+                
+        last_visited = current
 
 # Example maze
 maze = [[0, -1, 0, 0, 0],
@@ -106,7 +134,7 @@ maze = [[0, -1, 0, 0, 0],
         [-1, -1, 0, -1, 0]]
 
 start = (0, 0)
-end = (0, 2)
+end = (4, 4)
 
 maze, path = floodfill(maze, start, end)
 
@@ -123,3 +151,9 @@ if path:
         print()
 else:
     print("No path found.")
+    
+print("Segunda fase, posicione al robot en la posición inicial y presione enter.")
+
+input()
+
+followPath(path)
