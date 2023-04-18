@@ -94,6 +94,11 @@ void enviarDatos() {
   // Envía el valor del sensor IR frontal
   SerialBT.print("IRF,");
   SerialBT.print(valorIRFrontal);
+    SerialBT.print(",");
+  
+  SerialBT.print("phi,");
+  SerialBT.print(phi);
+
 //   SerialBT.print(",");
   // Envía el valor del primer sensor ranurado
 //   SerialBT.print("SR1,");
@@ -164,7 +169,6 @@ void enviarDatos() {
 
 float x = 0;          // distancia recorrida eje X
 float y = 0;          // distancia recorrida eje Y
-float phi = 0;        // posición angular
 
 volatile unsigned muestreoActual = 0; // variables para definiciòn del tiempo de muestreo
 volatile unsigned muestreoAnterior = 0;
@@ -238,6 +242,8 @@ float V = PWMmin+10;           // Velocidad lineal del carro
 float Xd = 5;
 float Yd = 0;
 float Phid= atan2(Yd-y, Xd-x);
+
+float phi = 0;        // posición angular inicial
 
 float diametro = 6.5;  // diametro de la llanta cm
 float longitud = 9.7; // longitud del robot entre llantas

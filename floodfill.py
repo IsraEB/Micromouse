@@ -1,5 +1,5 @@
 import serial
-
+import math
 from pprint import pprint
 
 arduino = None
@@ -19,6 +19,43 @@ def print_maze():
         print(row)
     print()
 
+def process_sensor_data(sensor_data):
+    return {
+        "IRL": int(sensor_data[1]),
+        "IRD": int(sensor_data[3]),
+        "IRF": int(sensor_data[5]),
+    }, float(sensor_data[7])
+
+def ir_values_to_walls(sensor_dict, ir_threshold, phi):
+    if(phi == 0):
+        return {
+            "up": sensor_dict["IRL"] < ir_threshold,
+            "left": False,
+            "down": sensor_dict["IRD"] < ir_threshold,
+            "right": sensor_dict["IRF"] < ir_threshold,
+        }
+    elif(phi == math.pi / 2):
+        return {
+            "up": sensor_dict["IRF"] < ir_threshold,
+            "left": sensor_dict["IRL"] < ir_threshold,
+            "down": False,
+            "right": sensor_dict["IRD"] < ir_threshold,
+        }
+    elif(phi == math.pi):
+        return {
+            "up": sensor_dict["IRD"] < ir_threshold,
+            "left": sensor_dict["IRF"] < ir_threshold,
+            "down": sensor_dict["IRL"] < ir_threshold,
+            "right": False,
+        }
+    elif(phi == math.pi * (3/2)):
+        return {
+            "up": False,
+            "left": sensor_dict["IRD"] < ir_threshold,
+            "down": sensor_dict["IRF"] < ir_threshold,
+            "right": sensor_dict["IRL"] < ir_threshold,
+        }
+        
 def floodfill(maze, start, end):
     queue = [start]
     visited = set()
@@ -48,6 +85,19 @@ def floodfill(maze, start, end):
             while True:
                 if arduino.in_waiting > 0:
                     line = arduino.readline().decode().strip()
+                    data = line.split(",")
+                    sensor_dict, phi = process_sensor_data(data)
+                    walls = ir_values_to_walls(sensor_dict, 50, phi)
+                    
+                    # if walls['left']:
+                    #     maze[current[0]][current[1]-1] = -1
+                    # if walls['right']:
+                    #     maze[current[0]][current[1]+1] = -1
+                    # if walls['up']:
+                    #     maze[current[0]-1][current[1]] = -1
+                    # if walls['down']:
+                    #     maze[current[0]+1][current[1]] = -1
+                    
                     print(line)
                     break
                 
