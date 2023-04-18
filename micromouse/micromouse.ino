@@ -63,80 +63,9 @@ void setup()
     Serial.println("Dispositivo Bluetooth iniciado");
 }
 
-// void loop() {
-//   leerSensores();
-//   enviarDatos();
-//   recibirComandos();
-// }
-
-// void leerSensores() {
-//   // Leer el sensor infrarrojo izquierdo
-//   valorIRIzquierdo = analogRead(pinIRIzquierdo);
-//   // Leer el sensor infrarrojo derecho
-//   valorIRDerecho = analogRead(pinIRDerecho);
-//   // Leer el sensor infrarrojo frontal
-//   valorIRFrontal = analogRead(pinIRFrontal);
-//   // Leer el primer sensor ranurado (odometría)
-//   valorRanurado1 = digitalRead(pinSensorRanurado1);
-//   // Leer el segundo sensor ranurado (odometría)
-//   valorRanurado2 = digitalRead(pinSensorRanurado2);
-// }
-
-// void recibirComandos() {
-//   if (SerialBT.available()) {
-//     char comando = SerialBT.read();
-//     if (comando == 'S') { // Cambio de fase
-//       fase = 2;
-//     } else {
-//       ejecutarMovimientos(comando);
-//     }
-//   }
-// }
-
-// void ejecutarMovimientos(char comando) {
-//   // Si estamos en la fase 1, permitimos los movimientos
-//   if (fase == 1) {
-//     // Detener los motores antes de cambiar de dirección
-//     digitalWrite(in1, LOW);
-//     digitalWrite(in2, LOW);
-//     digitalWrite(in3, LOW);
-//     digitalWrite(in4, LOW);
-
-//     switch (comando) {
-//       case 'A': // Avanzar
-//         digitalWrite(in1, HIGH);
-//         digitalWrite(in2, LOW);
-//         digitalWrite(in3, HIGH);
-//         digitalWrite(in4, LOW);
-//         break;
-//       case 'R': // Retroceder
-//         digitalWrite(in1, LOW);
-//         digitalWrite(in2, HIGH);
-//         digitalWrite(in3, LOW);
-//         digitalWrite(in4, HIGH);
-//         break;
-//       case 'L': // Girar a la izquierda
-//         digitalWrite(in1, LOW);
-//         digitalWrite(in2, HIGH);
-//         digitalWrite(in3, HIGH);
-//         digitalWrite(in4, LOW);
-//         break;
-//       case 'D': // Girar a la derecha
-//         digitalWrite(in1, HIGH);
-//         digitalWrite(in2, LOW);
-//         digitalWrite(in3, LOW);
-//         digitalWrite(in4, HIGH);
-//         break;
-//       default:
-//         // Si se recibe un comando no válido, no hacer nada
-//         break;
-//     }
-//   }
-// }
-
 // Odometry
 
-// Not move
+// Valores que no se mueven
 
 float x = 0;          // distancia recorrida eje X
 float y = 0;          // distancia recorrida eje Y
@@ -196,7 +125,7 @@ int Ltick = 0;        // ticks del encoder izquierdo
 int LtickAnt = 0;     // ticks del encoder izquier anteriores
 int deltaLtick = 0;   // diferencia del encoder izquierdo
 
-// Move
+//////////////////////////// VALORES INICIALES A MOVER///////////////////////////////
 
 int N = 20;            // nùmero de ranuras del encoder
 int contadorTicks = 40; // número de ticks para cálculo de velocidad (recordar que entre menor sea el valor mayor ruido de la medida)
@@ -447,7 +376,7 @@ void odometriaLoop(){
 
         //Serial.println("Hola3.5");
 
-        if (abs(x - Xd) < 5 && abs(y - Yd) < 5 && abs(phi - Phid) < 5)
+        if (abs(x - Xd) < 1 && abs(y - Yd) < 1)
         {
             analogWrite(enA, 0);
             analogWrite(enB, 0);

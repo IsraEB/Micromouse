@@ -112,13 +112,15 @@ def floodfill(maze, start, end):
         if last_visited != None and last_visited != current:
             arePointsAdyacent = getArePointsAdyacent(current, last_visited)
             if(arePointsAdyacent):
+                distance_to_travel = 1
                 
                 arduinoMovesTo = (
-                    last_visited[0]-current[0],
-                    current[1]-last_visited[1]
+                    (last_visited[0]-current[0])*distance_to_travel,
+                    (current[1]-last_visited[1])*distance_to_travel
                 )
                 
                 print("Para llegar a esta posición, el arduino se tiene que mover a (",arduinoMovesTo[0],",",arduinoMovesTo[1], ")")
+                
                 
                 arduino.write((str(arduinoMovesTo[0])+"\n").encode())
                 arduino.write((str(arduinoMovesTo[1])+"\n").encode())
@@ -169,6 +171,7 @@ def floodfill(maze, start, end):
             
             maze[neighbor[0]][neighbor[1]] = distance[neighbor]
             
+            
             if neighbor == end:
                 # Build path
                 path = [end]
@@ -180,7 +183,7 @@ def floodfill(maze, start, end):
             
         print_maze()
         
-        # input("Presione enter para continuar")
+        input("Presione enter para continuar")
 
     # Fill maze with distance values
     for i in range(len(maze)):
@@ -272,7 +275,7 @@ maze = [
 
 # input()
 
-start = (1, 1)
+start = (13, 1)
 end = (7, 13)
 
 maze, path = floodfill(maze, start, end)
