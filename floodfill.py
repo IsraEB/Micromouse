@@ -55,8 +55,46 @@ def ir_values_to_walls(sensor_dict, ir_threshold, phi):
             "down": sensor_dict["IRF"] < ir_threshold,
             "right": sensor_dict["IRL"] < ir_threshold,
         }
-        
+
+def getArePointsAdyacent(p1,p2):
+    # d = sqrt((x2 - x1)^2 + (y2 - y1)^2)
+    distance= math.sqrt( (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 )
+    return distance==1
+
+def getShortestPath(maze, start, end):
+    queue = [start]
+    visited = set()
+    parent = {}  # Map of child: parent
+
+    while queue:
+        current = queue.pop(0)
+        if current == end:
+            # Build path
+            path = [end]
+            while path[-1] != start:
+                path.append(parent[path[-1]])
+            path.reverse()
+            return path
+        visited.add(current)
+
+        # Check neighbors
+        neighbors = [(current[0]-1, current[1]),  # North
+                     (current[0]+1, current[1]),  # South
+                     (current[0], current[1]-1),  # West
+                     (current[0], current[1]+1)]  # East
+        for neighbor in neighbors:
+            if neighbor[0] < 0 or neighbor[0] >= len(maze) or \
+               neighbor[1] < 0 or neighbor[1] >= len(maze[0]) or \
+               neighbor in visited or maze[neighbor[0]][neighbor[1]] == -1:
+                continue
+            queue.append(neighbor)
+            parent[neighbor] = current
+
+    return None
+
 def floodfill(maze, start, end):
+    original_maze = maze.copy()
+    
     queue = [start]
     visited = set()
     distance = {start: 0}
@@ -71,35 +109,40 @@ def floodfill(maze, start, end):
         
         print(last_visited, current)
         
-        if(last_visited != current and last_visited != None):
-            
-            arduinoMovesTo = (
-                last_visited[0]-current[0],
-                current[1]-last_visited[1]
-            )
-            
-            print("Para llegar a esta posición, el arduino se tiene que mover a (",arduinoMovesTo[0],",",arduinoMovesTo[1], ")")
-            
-            arduino.write((str(arduinoMovesTo[0])+"\n").encode())
-            arduino.write((str(arduinoMovesTo[1])+"\n").encode())
-            while True:
-                if arduino.in_waiting > 0:
-                    line = arduino.readline().decode().strip()
-                    data = line.split(",")
-                    sensor_dict, phi = process_sensor_data(data)
-                    walls = ir_values_to_walls(sensor_dict, 50, phi)
-                    
-                    # if walls['left']:
-                    #     maze[current[0]][current[1]-1] = -1
-                    # if walls['right']:
-                    #     maze[current[0]][current[1]+1] = -1
-                    # if walls['up']:
-                    #     maze[current[0]-1][current[1]] = -1
-                    # if walls['down']:
-                    #     maze[current[0]+1][current[1]] = -1
-                    
-                    print(line)
-                    break
+        if last_visited != None and last_visited != current:
+            arePointsAdyacent = getArePointsAdyacent(current, last_visited)
+            if(arePointsAdyacent):
+                
+                arduinoMovesTo = (
+                    last_visited[0]-current[0],
+                    current[1]-last_visited[1]
+                )
+                
+                print("Para llegar a esta posición, el arduino se tiene que mover a (",arduinoMovesTo[0],",",arduinoMovesTo[1], ")")
+                
+                arduino.write((str(arduinoMovesTo[0])+"\n").encode())
+                arduino.write((str(arduinoMovesTo[1])+"\n").encode())
+                while True:
+                    if arduino.in_waiting > 0:
+                        line = arduino.readline().decode().strip()
+                        data = line.split(",")
+                        sensor_dict, phi = process_sensor_data(data)
+                        walls = ir_values_to_walls(sensor_dict, 50, phi)
+                        
+                        # if walls['left']:
+                        #     maze[current[0]][current[1]-1] = -1
+                        # if walls['right']:
+                        #     maze[current[0]][current[1]+1] = -1
+                        # if walls['up']:
+                        #     maze[current[0]-1][current[1]] = -1
+                        # if walls['down']:
+                        #     maze[current[0]+1][current[1]] = -1
+                        
+                        print(line)
+                        break
+            else:
+                path = getShortestPath(original_maze,last_visited,current)
+                followPath(path)
                 
         last_visited = current
            
@@ -220,11 +263,12 @@ maze = [
     [-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1,	-1],
 ]
 
-print(len(maze))
-for row in maze:
-    print(len(row))
+# Verify maze size
+# print(len(maze))
+# for row in maze:
+#     print(len(row))
 
-input()
+# input()
 
 start = (1, 1)
 end = (7, 13)
