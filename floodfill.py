@@ -226,8 +226,8 @@ for row in maze:
 
 input()
 
-start = (0, 0)
-end = (4, 4)
+start = (1, 1)
+end = (7, 13)
 
 maze, path = floodfill(maze, start, end)
 
