@@ -160,26 +160,7 @@ void enviarDatos() {
 
 // Odometry
 
-int N = 20;            // nùmero de ranuras del encoder
-int contadorTicks = 40; // número de ticks para cálculo de velocidad (recordar que entre menor sea el valor mayor ruido de la medida)
-int tam = 10;          // tamaño del vector del calculo de promedio (Este valor depende del tamaño de los vectores de promedio vectorL y vectorR)
-int k = 50;            // tiempo de muestreo
-float Kp = 4000;   // Contante proporcional control
-int xd = 100;
-int PWMmin = 100; // PWM mìnimo
-int PWMmax = PWMmin+30; // PWM màximo
-
-float V = PWMmin+10;           // Velocidad lineal del carro
-
-///------------------------------- Variables Posición deseada ---------------------------------------------
-float Xd = 5;
-float Yd = 0;
-float Phid= atan2(Yd-y, Xd-x);
-
-float diametro = 6.5;  // diametro de la llanta cm
-float longitud = 9.7; // longitud del robot entre llantas
-
-//Not move
+// Not move
 
 float x = 0;          // distancia recorrida eje X
 float y = 0;          // distancia recorrida eje Y
@@ -239,6 +220,27 @@ float Ldistancia = 0; // distancia recorrida llanta izquierda
 int Ltick = 0;        // ticks del encoder izquierdo
 int LtickAnt = 0;     // ticks del encoder izquier anteriores
 int deltaLtick = 0;   // diferencia del encoder izquierdo
+
+// Move
+
+int N = 20;            // nùmero de ranuras del encoder
+int contadorTicks = 40; // número de ticks para cálculo de velocidad (recordar que entre menor sea el valor mayor ruido de la medida)
+int tam = 10;          // tamaño del vector del calculo de promedio (Este valor depende del tamaño de los vectores de promedio vectorL y vectorR)
+int k = 50;            // tiempo de muestreo
+float Kp = 4000;   // Contante proporcional control
+int xd = 100;
+int PWMmin = 100; // PWM mìnimo
+int PWMmax = PWMmin+30; // PWM màximo
+
+float V = PWMmin+10;           // Velocidad lineal del carro
+
+///------------------------------- Variables Posición deseada ---------------------------------------------
+float Xd = 5;
+float Yd = 0;
+float Phid= atan2(Yd-y, Xd-x);
+
+float diametro = 6.5;  // diametro de la llanta cm
+float longitud = 9.7; // longitud del robot entre llantas
 
 void REncoder()
 {            // función de interrupción del enconder llanta derecha
@@ -439,7 +441,7 @@ void odometriaLoop(){
 
         //Serial.println("Hola3.5");
 
-        if (abs(x - Xd) < 1 && abs(y - Yd) < 1 && abs(phi - Phid) < 5)
+        if (abs(x - Xd) < 5 && abs(y - Yd) < 5 && abs(phi - Phid) < 5)
         {
             analogWrite(enA, 0);
             analogWrite(enB, 0);
@@ -496,11 +498,11 @@ void loop()
     if(state == 0){
         if(SerialBT.available()) serialEvent();
         if(dataComplete){
-            Xd = dataString.toInt()
+            Xd = dataString.toInt();
             
             if(SerialBT.available()) serialEvent();
             if(dataComplete){
-                Yd = dataString.toInt()
+                Yd = dataString.toInt();
 
                 changeToExecutingState();
 
