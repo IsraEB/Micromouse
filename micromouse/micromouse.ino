@@ -171,10 +171,6 @@ int PWMmax = PWMmin+30; // PWM màximo
 
 float V = PWMmin+10;           // Velocidad lineal del carro
 
-float x = 0;          // distancia recorrida eje X
-float y = 0;          // distancia recorrida eje Y
-float phi = 0;        // posición angular
-
 ///------------------------------- Variables Posición deseada ---------------------------------------------
 float Xd = 5;
 float Yd = 0;
@@ -183,6 +179,11 @@ float Phid= atan2(Yd-y, Xd-x);
 float diametro = 6.5;  // diametro de la llanta cm
 float longitud = 9.7; // longitud del robot entre llantas
 
+//Not move
+
+float x = 0;          // distancia recorrida eje X
+float y = 0;          // distancia recorrida eje Y
+float phi = 0;        // posición angular
 
 volatile unsigned muestreoActual = 0; // variables para definiciòn del tiempo de muestreo
 volatile unsigned muestreoAnterior = 0;
@@ -298,7 +299,7 @@ void LEncoder()
 
 String dataString;
 bool dataComplete = false;
-int state = 0 // 0 = waiting, 1 = executing
+int state = 0; // 0 = waiting, 1 = executing
 
 void changeToWaitingState(){
     state = 0;
@@ -306,7 +307,79 @@ void changeToWaitingState(){
     dataComplete = false;
 }
 
-oid odometriaLoop(){
+void setOdometryValuesToDefault(){
+    x = 0;          // distancia recorrida eje X
+    y = 0;          // distancia recorrida eje Y
+    
+    muestreoActual = 0; // variables para definiciòn del tiempo de muestreo
+    muestreoAnterior = 0;
+    deltaMuestreo = 0;
+
+    error = 0; // error variables
+    PWMr = 0;    // PWM de la llanta derecha (señal de control llanta derecha)
+    PWMl = 0;    // PWM de la llanta izquierda (señal de control llanta izquierda)
+
+    ///------------------------------- Variables Posición del robot---------------------------------------------
+    Cdistancia = 0; // distancia recorrido punto central
+
+    ///------------------------------- Variables del robot  ---------------------------------------------
+
+    W = 0;           // Velocidad Angular del carro
+
+    ///------------------------------- Variables de motor derecho---------------------------------------------
+
+    muestreoActualInterrupcionR = 0; // variables para definiciòn del tiempo de interrupciòn y calculo de la velocidad motor derecho
+    muestreoAnteriorInterrupcionR = 0;
+    deltaMuestreoInterrupcionR = 0;
+
+    encoderR = 3; // pin de conexiòn del encoder derecho
+    llantaR = 11; // pin de conexiòn de llanta derecha   (pin de PWM)
+
+    frecuenciaR = 0;                           // frecuencia de interrupciòn llanta R
+    Wr = 0;                                    // Velocidad angular R
+    Vr = 0;                                    // velocidad Lineal
+    CR = 0;                                       // contador ticks
+    for(int i=0;i<tam;i++){
+        vectorR[i]=0;
+    }
+    
+    Rdistancia = 0; // distancia recorrida llanta derecha
+    Rtick = 0;        // ticks del encoder derecho
+    RtickAnt = 0;     // ticks del encoder derecho anteriores
+    deltaRtick = 0;   // diferencia del encoder derecho
+
+    //------------------------------  Variables de motor Izquierdo ------------------------------------------------
+
+    muestreoActualInterrupcionL = 0; // variables para definiciòn del tiempo de interrupciòn y calculo de la velocidad motor Izquierdo
+    muestreoAnteriorInterrupcionL = 0;
+    deltaMuestreoInterrupcionL = 0;
+
+    encoderL = 2; // pin de conexiòn del encoder Izquierdo
+    llantaL = 10; // pin de conexiòn de llanta Izquierda   (pin de PWM)
+
+    frecuenciaL = 0;                           // frecuencia de interrupciòn llanta Izquierda
+    Wl = 0;                                    // Velocidad angular L
+    Vl = 0;                                    // velocidad Lineal
+    CL = 0;                                       // contador Ticks
+    for(int i=0;i<tam;i++){
+        vectorL[i]=0;
+    }
+    Ldistancia = 0; // distancia recorrida llanta izquierda
+    Ltick = 0;        // ticks del encoder izquierdo
+    LtickAnt = 0;     // ticks del encoder izquier anteriores
+    deltaLtick = 0;   // diferencia del encoder izquierdo
+}
+
+void setNewTargets(){
+
+}
+
+void changeToExecutingState(){
+    state = 1;
+    setOdometryValuesToDefault();
+}
+
+void odometriaLoop(){
     //Serial.println("Hola");
 
     muestreoActual = millis();              // Tiempo actual de muestreo
@@ -371,9 +444,9 @@ oid odometriaLoop(){
             analogWrite(enA, 0);
             analogWrite(enB, 0);
 
+            enviarDatos();
 
-
-            changeToWaitingState()
+            changeToWaitingState();
         }
         else
         {
@@ -423,11 +496,20 @@ void loop()
     if(state == 0){
         if(SerialBT.available()) serialEvent();
         if(dataComplete){
-            state = 1;   
+            Xd = dataString.toInt()
+            
+            if(SerialBT.available()) serialEvent();
+            if(dataComplete){
+                Yd = dataString.toInt()
+
+                changeToExecutingState();
+
+                float Phid= atan2(Yd-y, Xd-x);
+            }
         }
     }
     else if(state == 1){
-        odometriaLoop()
+        odometriaLoop();
     }
 }
 
