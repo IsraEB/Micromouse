@@ -1,4 +1,5 @@
 #include "BluetoothSerial.h"
+#include <analogWrite.h>
 #include <Wire.h>
 #include <math.h>                            // necesaria para utilizar función atan()
 #define PI 3.1415926535897932384626433832795 // definición del número PI
@@ -15,9 +16,9 @@ const int pinSensorRanurado2 = 17;
 const int enA = 5;
 const int in1 = 18;
 const int in2 = 19;
-const int enB = 21;
-const int in3 = 22;
-const int in4 = 23;
+const int in3 = 21;
+const int in4 = 22;
+const int enB = 23;
 
 int valorIRIzquierdo;
 int valorIRDerecho;
@@ -42,22 +43,22 @@ void setup()
 
     // pinMode(pinSensorRanurado1, INPUT);
     // pinMode(pinSensorRanurado2, INPUT);
-    attachInterrupt(digitalPinToInterrupt(pinSensorRanurado1), REncoder, FALLING); // linea para añadir una interrupciòn a un PIN
-    attachInterrupt(digitalPinToInterrupt(pinSensorRanurado2), LEncoder, FALLING); // linea para añadir una interrupciòn a un PIN
+    attachInterrupt(digitalPinToInterrupt(pinSensorRanurado1), REncoder, RISING); // linea para añadir una interrupciòn a un PIN
+    attachInterrupt(digitalPinToInterrupt(pinSensorRanurado2), LEncoder, RISING); // linea para añadir una interrupciòn a un PIN
 
     pinMode(enA, OUTPUT);
     pinMode(in1, OUTPUT);
     pinMode(in2, OUTPUT);
-    pinMode(enB, OUTPUT);
     pinMode(in3, OUTPUT);
     pinMode(in4, OUTPUT);
+    pinMode(enB, OUTPUT);
 
     digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
+    digitalWrite(in2, HIGH);
     digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
-    analogWrite(enA, 255);
-    analogWrite(enB, 255);
+    digitalWrite(in4, HIGH);
+    analogWrite(enA, 0);
+    analogWrite(enB, 0);
 
     Serial.println("Dispositivo Bluetooth iniciado");
 }
@@ -81,29 +82,29 @@ void setup()
 //   valorRanurado2 = digitalRead(pinSensorRanurado2);
 // }
 
-// void enviarDatos() {
-//   // Envía el valor del sensor IR izquierdo
-//   SerialBT.print("IRL,");
-//   SerialBT.print(valorIRIzquierdo);
+void enviarDatos() {
+  // Envía el valor del sensor IR izquierdo
+  SerialBT.print("IRL,");
+  SerialBT.print(valorIRIzquierdo);
+  SerialBT.print(",");
+  // Envía el valor del sensor IR derecho
+  SerialBT.print("IRD,");
+  SerialBT.print(valorIRDerecho);
+  SerialBT.print(",");
+  // Envía el valor del sensor IR frontal
+  SerialBT.print("IRF,");
+  SerialBT.print(valorIRFrontal);
 //   SerialBT.print(",");
-//   // Envía el valor del sensor IR derecho
-//   SerialBT.print("IRD,");
-//   SerialBT.print(valorIRDerecho);
-//   SerialBT.print(",");
-//   // Envía el valor del sensor IR frontal
-//   SerialBT.print("IRF,");
-//   SerialBT.print(valorIRFrontal);
-//   SerialBT.print(",");
-//   // Envía el valor del primer sensor ranurado
+  // Envía el valor del primer sensor ranurado
 //   SerialBT.print("SR1,");
 //   SerialBT.print(valorRanurado1);
 //   SerialBT.print(",");
-//   // Envía el valor del segundo sensor ranurado
+  // Envía el valor del segundo sensor ranurado
 //   SerialBT.print("SR2,");
 //   SerialBT.print(valorRanurado2);
-//   // Indica el final de la línea de datos
-//   SerialBT.println();
-// }
+  // Indica el final de la línea de datos
+  SerialBT.println();
+}
 
 // void recibirComandos() {
 //   if (SerialBT.available()) {
@@ -159,57 +160,43 @@ void setup()
 
 // Odometry
 
-void moveFront()
-{
-}
-
-void turnLeft()
-{
-}
-
-void turnRight()
-{
-}
-
-void sendSensors()
-{
-}
-
-// Odometry
-
 int N = 20;            // nùmero de ranuras del encoder
-int contadorTicks = 1; // número de ticks para cálculo de velocidad (recordar que entre menor sea el valor mayor ruido de la medida)
+int contadorTicks = 40; // número de ticks para cálculo de velocidad (recordar que entre menor sea el valor mayor ruido de la medida)
 int tam = 10;          // tamaño del vector del calculo de promedio (Este valor depende del tamaño de los vectores de promedio vectorL y vectorR)
-int k = 10;            // tiempo de muestreo
+int k = 50;            // tiempo de muestreo
+float Kp = 4000;   // Contante proporcional control
+int xd = 100;
+int PWMmin = 100; // PWM mìnimo
+int PWMmax = PWMmin+30; // PWM màximo
+
+float V = PWMmin+10;           // Velocidad lineal del carro
+
+float x = 0;          // distancia recorrida eje X
+float y = 0;          // distancia recorrida eje Y
+float phi = 0;        // posición angular
+
+///------------------------------- Variables Posición deseada ---------------------------------------------
+float Xd = 5;
+float Yd = 0;
+float Phid= atan2(Yd-y, Xd-x);
+
+float diametro = 6.5;  // diametro de la llanta cm
+float longitud = 9.7; // longitud del robot entre llantas
+
 
 volatile unsigned muestreoActual = 0; // variables para definiciòn del tiempo de muestreo
 volatile unsigned muestreoAnterior = 0;
 volatile unsigned deltaMuestreo = 0;
 
 float error = 0; // error variables
-float Kp = 40;   // Contante proporcional control
 int PWMr = 0;    // PWM de la llanta derecha (señal de control llanta derecha)
 int PWMl = 0;    // PWM de la llanta izquierda (señal de control llanta izquierda)
 
-int PWMmax = 60; // PWM màximo
-int PWMmin = 30; // PWM mìnimo
-
 ///------------------------------- Variables Posición del robot---------------------------------------------
 float Cdistancia = 0; // distancia recorrido punto central
-float x = 0;          // distancia recorrida eje X
-float y = 0;          // distancia recorrida eje Y
-float phi = 0;        // posición angular
-
-///------------------------------- Variables Posición deseada ---------------------------------------------
-float Xd = 100;
-float Yd = 100;
-float Phid = atan2(Yd - y, Xd - x);
 
 ///------------------------------- Variables del robot  ---------------------------------------------
 
-float diametro = 6.8;  // diametro de la llanta cm
-float longitud = 13.4; // longitud del robot entre llantas
-float V = 0;           // Velocidad lineal del carro
 float W = 0;           // Velocidad Angular del carro
 
 ///------------------------------- Variables de motor derecho---------------------------------------------
@@ -254,6 +241,7 @@ int deltaLtick = 0;   // diferencia del encoder izquierdo
 
 void REncoder()
 {            // función de interrupción del enconder llanta derecha
+  Serial.println("Hola R");
     Rtick++; // Nùmero de ticks llanta derecha
     CR++;    // incremento del contador de ticks
     if (CR == contadorTicks)
@@ -281,6 +269,7 @@ void REncoder()
 
 void LEncoder()
 {            // funciòn de interrupciòn del enconder llanta izquierda
+  Serial.println("Hola L");
     Ltick++; // Nùmero de ticks llanta izquierda
     CL++;    // incremento del contador de ticks
     if (CL == contadorTicks)
@@ -306,15 +295,30 @@ void LEncoder()
     }
 }
 
-void loop()
-{
+
+String dataString;
+bool dataComplete = false;
+int state = 0 // 0 = waiting, 1 = executing
+
+void changeToWaitingState(){
+    state = 0;
+    dataString = "";
+    dataComplete = false;
+}
+
+oid odometriaLoop(){
+    //Serial.println("Hola");
+
     muestreoActual = millis();              // Tiempo actual de muestreo
     muestreoActualInterrupcionR = millis(); // se asigna el tiempo de ejecuciòn a el muestreo actual
     muestreoActualInterrupcionL = millis(); // se asigna el tiempo de ejecuciòn a el muestreo actual
 
+    //Serial.println("Hola2");
+
     deltaMuestreo = (double)muestreoActual - muestreoAnterior; // delta de muestreo
     if (deltaMuestreo >= k)                                    // se asegura el tiempo de muestreo
     {
+      //Serial.println("Hola3");
         float Phid = atan2(Yd - y, Xd - x); // Recalcular el ángulo deseado en cada iteración, dado que el cambia con respecto  a cada movimiento
 
         deltaMuestreoInterrupcionR = muestreoActualInterrupcionR - muestreoAnteriorInterrupcionR; // diferencia tiempos de interruciones de ticks del motor
@@ -335,7 +339,7 @@ void loop()
         Vl = Wl * (diametro / 2);                          // velocidad lineal cm/s
 
         //        V = (Vr+Vl)/2;                                                                                    // calculo de la velocidad del robot
-        V = 50;                                // velocidad constante para alcanzar el àngulo
+        //V = 50;                                // velocidad constante para alcanzar el àngulo
         error = Phid - phi;                    // error angular Angulo deseado menos el angulo del robot
         W = (Vr - Vl) / longitud + Kp * error; // Càlculo de la velocidad angular con las variables de control
         PWMr = V + (W * longitud) / 2;         // Señal de control PWM llanta derecha
@@ -360,15 +364,23 @@ void loop()
             PWMl = PWMmin;
         }
 
-        if (abs(x - Xd) < 5 && abs(y - Yd) < 5 && abs(phi - Phid) < 5)
+        //Serial.println("Hola3.5");
+
+        if (abs(x - Xd) < 1 && abs(y - Yd) < 1 && abs(phi - Phid) < 5)
         {
-            analogWrite(llantaR, 0);
-            analogWrite(llantaL, 0);
+            analogWrite(enA, 0);
+            analogWrite(enB, 0);
+
+
+
+            changeToWaitingState()
         }
         else
         {
-            analogWrite(llantaR, PWMr);
-            analogWrite(llantaL, PWMl);
+          //Serial.print("PWNr: ");
+          //Serial.println(PWMr);
+            analogWrite(enA, PWMr);
+            analogWrite(enB, PWMl);
         }
 
         //        analogWrite(llantaR,PWMr);                                                                           // PWM de la llanta derecha
@@ -377,13 +389,45 @@ void loop()
         //        analogWrite(llantaR,0);                                                                           // PWM de la llanta derecha
         //        analogWrite(llantaL,0);                                                                           // PWM de la llanta izquierda
 
+      //Serial.println("Hola4");
+
         odometria(); // cálculo de la odometría
 
-        Serial.print(x);   // se muestra el tiempo entre TIC y TIC
-        Serial.print(","); // se muestra el tiempo entre TIC y TIC
-        Serial.println(y); // se muestra el tiempo entre TIC y TIC
+        // Serial.print(Ltick);
+        // Serial.print(","); // se muestra el tiempo entre TIC y TIC
+        // Serial.print(Rtick);
+        // Serial.print(","); // se muestra el tiempo entre TIC y TIC
+        
+        // Serial.print(x);   // se muestra el tiempo entre TIC y TIC
+        // Serial.print(","); // se muestra el tiempo entre TIC y TIC
+        // Serial.println(y); // se muestra el tiempo entre TIC y TIC
 
         muestreoAnterior = muestreoActual; // actualización del muestreo anterior
+
+        //Serial.println("Hola5");
+    }
+}
+
+void serialEvent(){
+    while(SerialBT.available()){
+        char inChar = (char) SerialBT.read();
+        dataString += inChar;
+        if(inChar == '\n'){
+            dataComplete = true;
+        }
+    }
+}
+
+void loop()
+{
+    if(state == 0){
+        if(SerialBT.available()) serialEvent();
+        if(dataComplete){
+            state = 1;   
+        }
+    }
+    else if(state == 1){
+        odometriaLoop()
     }
 }
 

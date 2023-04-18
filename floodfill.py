@@ -1,3 +1,14 @@
+import serial
+
+try:
+    arduino = serial.Serial('COM10', 9600)
+except:
+    print("No se ha podido conectar al puerto")
+
+# while True:
+#     if arduino.in_waiting > 0:
+#         line = arduino.readline().decode().strip()
+
 def print_maze():
     # Print filled maze
     for row in maze:
@@ -81,3 +92,4 @@ if path:
     print("Shortest path found:", path)
 else:
     print("No path found.")
+
