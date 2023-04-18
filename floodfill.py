@@ -179,6 +179,8 @@ def floodfill(maze, start, end):
                 return maze, path
             
         print_maze()
+        
+        input("Presione enter para continuar")
 
     # Fill maze with distance values
     for i in range(len(maze)):
